@@ -1,0 +1,6 @@
+TODO:
+- parser
+
+- We use package unicode in the lexer. This doesn't mean that we accept unicode since the inpute is
+processed byte for byte (and the functions in 'unicode' when operating on single bytes practically
+accept ASCII).
