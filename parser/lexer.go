@@ -1,5 +1,5 @@
-// Package lexer defines the lexer for Alan.
-package lexer
+// Package parser defines the lexer and the parser for Alan.
+package parser
 
 import (
 	"bytes"
@@ -9,46 +9,8 @@ import (
 	"unicode"
 )
 
-const (
-	// EOF is the end of file marker
-	EOF = iota
-	// Byte is the keyword "byte"
-	Byte
-	// Else is the keyword "else"
-	Else
-	// False is the keyword "false"
-	False
-	// If is the keyword "if"
-	If
-	// Int is the keyword "int"
-	Int
-	// Proc is the keyword "proc"
-	Proc
-	// Reference is the keyword "reference"
-	Reference
-	// Return is the keyword "return"
-	Return
-	// While is the keyword "while"
-	While
-	// True is the keyword "true"
-	True
-	// Ident is an identifier
-	Ident
-	// IntConst is an integer constant
-	IntConst
-	// CharLit is a character literal
-	CharLit
-	// StrLit is a string literal
-	StrLit
-	// EQ is the separator '=='
-	EQ
-	// NE is the separator '!='
-	NE
-	// LE is the separator '<='
-	LE
-	// GE is the separator '>='
-	GE
-)
+// EOF is the token number for the endmarker
+const EOF = 0
 
 var operators = []byte{'=', '+', '-', '*', '/', '%', '!', '&', '|', '<', '>'}
 var separators = []byte{'(', ')', '[', ']', '{', '}', ',', ':', ';'}
@@ -58,18 +20,11 @@ type Lexer struct {
 	pbs *posByteScanner
 }
 
-// New returns a new Lexer.
-func New(bs io.ByteScanner) Lexer {
+// NewLexer returns a new Lexer.
+func NewLexer(bs io.ByteScanner) Lexer {
 	return Lexer{
 		pbs: newPosByteScanner(bs),
 	}
-}
-
-type YySymType struct {
-	id string
-	i  int
-	c  byte
-	s  string
 }
 
 func (l Lexer) printError(err error) (int, error) {
@@ -77,7 +32,7 @@ func (l Lexer) printError(err error) (int, error) {
 }
 
 // Lex returns the next token identfier and places the relevant token information on lval.
-func (l Lexer) Lex(lval *YySymType) int {
+func (l Lexer) Lex(lval *yySymType) int {
 	// Consume whitespace and comments
 	var b0 byte
 	var err error
@@ -124,7 +79,7 @@ func (l Lexer) Lex(lval *YySymType) int {
 	}
 
 	// Return token starting with b0
-	var handler func(byte, io.ByteScanner, *YySymType) (int, error)
+	var handler func(byte, io.ByteScanner, *yySymType) (int, error)
 	switch {
 	case unicode.IsLetter(rune(b0)):
 		handler = handleKwdOrIdent
@@ -153,5 +108,5 @@ func (l Lexer) Lex(lval *YySymType) int {
 
 // Error reports a parser error, e.
 func (l Lexer) Error(e string) {
-	fmt.Fprintf(os.Stderr, "parser: %s (around %v)\n", e, l.pbs)
+	fmt.Fprintf(os.Stderr, "parse: %s (around %v)\n", e, l.pbs)
 }

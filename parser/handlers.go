@@ -1,4 +1,4 @@
-package lexer
+package parser
 
 import (
 	"bytes"
@@ -84,7 +84,7 @@ func consumeBlockComment(bs io.ByteScanner) error {
 
 // handleKwdOrIdent returns an keyword or identifier from bs starting with b0. It assumes b0 is a
 // letter (the last byte **read** from bs).
-func handleKwdOrIdent(b0 byte, bs io.ByteScanner, lval *YySymType) (int, error) {
+func handleKwdOrIdent(b0 byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 	// Read as many letters, digits and underscores
 	var buf strings.Builder
 	buf.WriteByte(b0)
@@ -108,34 +108,34 @@ func handleKwdOrIdent(b0 byte, bs io.ByteScanner, lval *YySymType) (int, error) 
 
 	switch word := buf.String(); word {
 	case "byte":
-		return Byte, nil
+		return BYTE, nil
 	case "else":
-		return Else, nil
+		return ELSE, nil
 	case "false":
-		return False, nil
+		return FALSE, nil
 	case "if":
-		return If, nil
+		return IF, nil
 	case "int":
-		return Int, nil
+		return INT, nil
 	case "proc":
-		return Proc, nil
+		return PROC, nil
 	case "reference":
-		return Reference, nil
+		return REFERENCE, nil
 	case "return":
-		return Return, nil
+		return RETURN, nil
 	case "while":
-		return While, nil
+		return WHILE, nil
 	case "true":
-		return True, nil
+		return TRUE, nil
 	default:
 		lval.id = word
-		return Ident, nil
+		return IDENT, nil
 	}
 }
 
 // handleIntConst returns the an integer constant from bs starting with b0. It assumes b0 is a
 // decimal digit (the last byte **read** from bs).
-func handleIntConst(b0 byte, bs io.ByteScanner, lval *YySymType) (int, error) {
+func handleIntConst(b0 byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 	// Read as many decimal digits
 	var buf strings.Builder
 	buf.WriteByte(b0)
@@ -166,7 +166,7 @@ func handleIntConst(b0 byte, bs io.ByteScanner, lval *YySymType) (int, error) {
 		}
 		return -1, err
 	}
-	return IntConst, nil
+	return INT_CONST, nil
 }
 
 // nextChar returns the next character from bs, interpreting escape sequences. It returns quotation
@@ -222,7 +222,7 @@ func nextChar(bs io.ByteScanner) (byte, error) {
 
 // handleCharLit returns a character literal from bs. It assumes the first argument is the starting
 // '\'' (the last byte **read** from bs).
-func handleCharLit(_ byte, bs io.ByteScanner, lval *YySymType) (int, error) {
+func handleCharLit(_ byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 	c, err := nextChar(bs)
 	if err != nil {
 		return -1, eofToUnexpectedEOF(err)
@@ -241,12 +241,12 @@ func handleCharLit(_ byte, bs io.ByteScanner, lval *YySymType) (int, error) {
 	}
 
 	lval.c = c
-	return CharLit, nil
+	return CHAR_LIT, nil
 }
 
 // handleStrLit returns a string literal from bs. It assumes the first argument is '"' (the last
 // byte **read** from bs).
-func handleStrLit(_ byte, bs io.ByteScanner, lval *YySymType) (int, error) {
+func handleStrLit(_ byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 	var buf strings.Builder
 	for {
 		c, err := nextChar(bs)
@@ -259,12 +259,12 @@ func handleStrLit(_ byte, bs io.ByteScanner, lval *YySymType) (int, error) {
 		buf.WriteByte(c)
 	}
 	lval.s = buf.String()
-	return StrLit, nil
+	return STR_LIT, nil
 }
 
 // handleOp returns an operator from bs. It assumes b0 is in operators (the last byte **read** from
 // bs).
-func handleOp(b0 byte, bs io.ByteScanner, lval *YySymType) (int, error) {
+func handleOp(b0 byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 	if b0 != '!' && b0 != '=' && b0 != '<' && b0 != '>' {
 		return int(b0), nil
 	}
@@ -299,6 +299,6 @@ func handleOp(b0 byte, bs io.ByteScanner, lval *YySymType) (int, error) {
 
 // handleSep returns a separator from bs. It assumes b0 is in separators (the last byte **read**
 // from bs).
-func handleSep(b0 byte, _ io.ByteScanner, _ *YySymType) (int, error) {
+func handleSep(b0 byte, _ io.ByteScanner, _ *yySymType) (int, error) {
 	return int(b0), nil
 }

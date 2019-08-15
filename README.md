@@ -9,3 +9,9 @@ course at ECE NTUA (spring 2018).
 For the specification of the language (in Greek), see `alan2018.pdf`.
 
 Various example programs in Alan can be found in the `examples` directory.
+
+## Build guide
+```bash
+$ go generate github.com/foxeng/alanc/parser
+$ go build
+```

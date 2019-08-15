@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/foxeng/alanc/lexer"
+	"github.com/foxeng/alanc/parser"
 )
 
 func main() {
@@ -14,9 +14,6 @@ func main() {
 		return
 	}
 
-	l := lexer.New(bufio.NewReader(fin))
-	var lval lexer.YySymType
-	for t := l.Lex(&lval); t != lexer.EOF; t = l.Lex(&lval) {
-		fmt.Printf("%d: %#v\n", t, lval)
-	}
+	l := parser.NewLexer(bufio.NewReader(fin))
+	fmt.Println(parser.Parse(&l) == 0)
 }
