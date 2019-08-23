@@ -13,6 +13,7 @@ func main() {
 	if err != nil {
 		return
 	}
+	defer fin.Close()
 
 	l := parser.NewLexer(bufio.NewReader(fin))
 	fmt.Println(parser.Parse(&l) == 0)
