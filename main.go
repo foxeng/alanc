@@ -22,5 +22,9 @@ func main() {
 	defer fin.Close()
 
 	l := parser.NewLexer(bufio.NewReader(fin))
-	fmt.Println(parser.Parse(&l) == 0)
+	_, err = parser.Parse(&l)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "parse: %v\n", err)
+		os.Exit(1)
+	}
 }

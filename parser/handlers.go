@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/foxeng/alanc/ast"
 )
 
 var hexDigits = []byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
@@ -128,7 +130,7 @@ func handleKwdOrIdent(b0 byte, bs io.ByteScanner, lval *yySymType) (int, error) 
 	case "true":
 		return TRUE, nil
 	default:
-		lval.id = word
+		lval.id = ast.ID(word)
 		return IDENT, nil
 	}
 }
@@ -157,14 +159,16 @@ func handleIntConst(b0 byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 		}
 	}
 
-	var err error
-	lval.i, err = strconv.Atoi(buf.String())
+	i, err := strconv.Atoi(buf.String())
 	if err != nil {
 		if err == strconv.ErrSyntax {
 			// This shouldn't happen because the digits are checked above
 			panic(err)
 		}
 		return -1, err
+	}
+	lval.iconst = ast.IntConstExpr{
+		Val: i,
 	}
 	return INT_CONST, nil
 }
@@ -237,10 +241,12 @@ func handleCharLit(_ byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 		return -1, eofToUnexpectedEOF(err)
 	}
 	if b != '\'' {
-		return -1, fmt.Errorf("tooo many characters in character literal")
+		return -1, fmt.Errorf("too many characters in character literal")
 	}
 
-	lval.c = c
+	lval.cconst = ast.CharConstExpr{
+		Val: rune(c),
+	}
 	return CHAR_LIT, nil
 }
 
@@ -258,7 +264,9 @@ func handleStrLit(_ byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 		}
 		buf.WriteByte(c)
 	}
-	lval.s = buf.String()
+	lval.strlit = ast.StrLitExpr{
+		Val: buf.String(),
+	}
 	return STR_LIT, nil
 }
 
@@ -287,7 +295,7 @@ func handleOp(b0 byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 			return GE, nil
 		default:
 			// This shouldn't happen, it's checked above
-			panic(fmt.Sprintf("invalid opeartor %q", fmt.Sprintf("%c%c", b0, b1)))
+			panic(fmt.Sprintf("invalid operator %q", fmt.Sprintf("%c%c", b0, b1)))
 		}
 	} else {
 		if err = bs.UnreadByte(); err != nil {

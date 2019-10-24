@@ -2,7 +2,17 @@
 
 package parser
 
-// Parse is a wrapper around goyacc's yyParse.
-func Parse(l *Lexer) int {
-	return yyParse(l)
+import (
+	"errors"
+
+	"github.com/foxeng/alanc/ast"
+)
+
+// Parse is a wrapper around goyacc's yyParse. When yyParse accepts, this returns the AST produced.
+func Parse(l *Lexer) (*ast.Ast, error) {
+	r := yyParse(l)
+	if r != 0 {
+		return nil, errors.New("parser rejected")
+	}
+	return _ast, nil
 }

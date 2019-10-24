@@ -31,7 +31,7 @@ func (l Lexer) printError(err error) (int, error) {
 	return fmt.Fprintf(os.Stderr, "lexer: %v (%v)\n", err, l.pbs)
 }
 
-// Lex returns the next token identfier and places the relevant token information on lval.
+// Lex returns the next token identifier and places the relevant token information on lval.
 func (l Lexer) Lex(lval *yySymType) int {
 	// Consume whitespace and comments
 	var b0 byte
