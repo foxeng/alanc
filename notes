@@ -1,13 +1,17 @@
 TODO:
-- parser: Tests
-- AST
+- Walk AST.
+- Symbol table.
+- Type checks.
 
 - Is indexing a string literal (e.g. '"abc"[1]') allowed? The grammar[2] does not include it, but
 the section on l-values[1.4.1] implies it. In case it is allowed, what are the semantics of
 assigning to such an l-value (e.g. '"abc"[1] = "a"')?
 
+OPT:
+- Parser tests.
+
 NOTES:
-- We use package unicode in the lexer. This doesn't mean that we accept unicode since the inpute is
+- We use package unicode in the lexer. This doesn't mean that we accept unicode since the input is
 processed byte for byte (and the functions in 'unicode' when operating on single bytes practically
 accept ASCII).
 
