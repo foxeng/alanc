@@ -15,6 +15,10 @@ const EOF = 0
 var operators = []byte{'=', '+', '-', '*', '/', '%', '!', '&', '|', '<', '>'}
 var separators = []byte{'(', ')', '[', ']', '{', '}', ',', ':', ';'}
 
+// lexErr communicates lexer errors to the parser driver.
+// TODO: Figure out a way to do this via the parser, not bypassing it.
+var lexErr error
+
 // Lexer is the lexer for Alan.
 type Lexer struct {
 	pbs *posByteScanner
@@ -25,10 +29,6 @@ func NewLexer(bs io.ByteScanner) Lexer {
 	return Lexer{
 		pbs: newPosByteScanner(bs),
 	}
-}
-
-func (l Lexer) printError(err error) (int, error) {
-	return fmt.Fprintf(os.Stderr, "lexer: %v (%v)\n", err, l.pbs)
 }
 
 // Lex returns the next token identifier and places the relevant token information on lval.
@@ -42,14 +42,16 @@ func (l Lexer) Lex(lval *yySymType) int {
 			if err == io.EOF {
 				return EOF
 			}
-			l.printError(fmt.Errorf("starting new token: %v", err))
+			lexErr = fmt.Errorf("starting new token: %v (%v)", err, l.pbs)
+			return -1
 		}
 		if unicode.IsSpace(rune(b0)) {
 			if err = consumeSpace(l.pbs); err != nil {
 				if err == io.EOF {
 					return EOF
 				}
-				l.printError(fmt.Errorf("consuming white space: %v", err))
+				lexErr = fmt.Errorf("consuming white space: %v (%v)", err, l.pbs)
+				return -1
 			}
 		} else if b0 == '-' || b0 == '(' {
 			b1, err := l.pbs.ReadByte()
@@ -57,15 +59,18 @@ func (l Lexer) Lex(lval *yySymType) int {
 				if err == io.EOF {
 					break // return b0 and let the parser handle the EOF in the next call
 				}
-				l.printError(fmt.Errorf("checking for comment: %v", err))
+				lexErr = fmt.Errorf("checking for comment: %v (%v)", err, l.pbs)
+				return -1
 			}
 			if b0 == '-' && b1 == '-' {
 				if err = consumeLineComment(l.pbs); err != nil {
-					l.printError(fmt.Errorf("consuming line comment: %v", err))
+					lexErr = fmt.Errorf("consuming line comment: %v (%v)", err, l.pbs)
+					return -1
 				}
 			} else if b0 == '(' && b1 == '*' {
 				if err = consumeBlockComment(l.pbs); err != nil {
-					l.printError(fmt.Errorf("consuming block comment: %v", err))
+					lexErr = fmt.Errorf("consuming block comment: %v (%v)", err, l.pbs)
+					return -1
 				}
 			} else {
 				if err = l.pbs.UnreadByte(); err != nil {
@@ -94,14 +99,16 @@ func (l Lexer) Lex(lval *yySymType) int {
 	case bytes.ContainsRune(separators, rune(b0)):
 		handler = handleSep
 	default:
-		l.printError(fmt.Errorf("unexpected character: %c (code point %d)", b0, b0))
+		lexErr = fmt.Errorf("unexpected character: %c (code point %d) (%v)", b0, b0, l.pbs)
+		return -1
 	}
 
 	tok, err := handler(b0, l.pbs, lval)
 	if err != nil {
 		// TODO OPT: Report what token was being scanned (thus, specialize for each switch case
 		// above)
-		l.printError(err)
+		lexErr = fmt.Errorf("%v (%v)", err, l.pbs)
+		return -1
 	}
 	return tok
 }
