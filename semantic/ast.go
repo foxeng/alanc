@@ -102,7 +102,7 @@ type LogOp rune
 
 // Ast is a whole abstract syntax tree.
 type Ast struct {
-	Program FuncDef
+	Program *FuncDef
 }
 
 // Node is a single Node of an AST.

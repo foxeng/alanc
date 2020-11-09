@@ -40,7 +40,7 @@ var ast *semantic.Ast
 %union {
 	id semantic.ID
 	ast semantic.Ast
-	fdef semantic.FuncDef
+	fdef *semantic.FuncDef
 	pdefs []semantic.ParDef
 	pdef semantic.ParDef
 	dt semantic.DataType
@@ -111,7 +111,7 @@ program:
 func_def:
 	IDENT '(' fpar_list ')' ':' r_type local_def_list compound_stmt
 	{
-		$$ = semantic.FuncDef{
+		$$ = &semantic.FuncDef{
 			ID: $1,
 			Parameters: $3,
 			RType: $6,
@@ -207,7 +207,7 @@ local_def_list:
 local_def:
 	func_def
 	{
-		$$ = &$1
+		$$ = $1
 	}
 |	var_def
 	{
