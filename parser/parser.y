@@ -185,7 +185,9 @@ data_type:
 r_type:
 	data_type
 	{
-		$$ = &$1
+		// Make sure to return a pointer to a _copy_ of $1, because the underlying $1 is reused.
+		dt := $1
+		$$ = &dt
 	}
 |	PROC
 	{
@@ -251,7 +253,9 @@ stmt:
 	}
 |	compound_stmt
 	{
-		$$ = &$1
+		// Make sure to return a pointer to a _copy_ of $1, because the underlying $1 is reused.
+		cs := $1
+		$$ = &cs
 	}
 |	func_call ';'
 	{
@@ -346,11 +350,15 @@ expr_list:
 expr:
 	INT_CONST
 	{
-		$$ = &$1
+		// Make sure to return a pointer to a _copy_ of $1, because the underlying $1 is reused.
+		i := $1
+		$$ = &i
 	}
 |	CHAR_LIT
 	{
-		$$ = &$1
+		// Make sure to return a pointer to a _copy_ of $1, because the underlying $1 is reused.
+		c := $1
+		$$ = &c
 	}
 |	l_value
 	{
@@ -438,7 +446,9 @@ l_value:
 	}
 |	STR_LIT
 	{
-		$$ = &$1
+		// Make sure to return a pointer to a _copy_ of $1, because the underlying $1 is reused.
+		s := $1
+		$$ = &s
 	}
 ;
 
