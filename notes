@@ -1,13 +1,9 @@
 TODO:
 - Checks:
-  - Types:
-    - Type of main function? (name doesn't matter) Can it accept params? Can it have non-proc
-      return?
+  - OPT: For functions (i.e. not proc), check that they contain a return.
   - OPT: Bounds.
 - Test:
-  - Go over spec again, check for all the details:
-    - Identifiers should not match any keyword (taken care of by lexer)?
-    - Return should match type of function.
+  - Go over spec again, check for all the details.
 
 - Is indexing a string literal (e.g. '"abc"[1]') allowed? The grammar[2] does not include it, but
 the section on l-values[1.4.1] implies it. In case it is allowed, what are the semantics of
