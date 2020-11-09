@@ -8,6 +8,7 @@ the section on l-values[1.4.1] implies it. In case it is allowed, what are the s
 assigning to such an l-value (e.g. '"abc"[1] = "a"')?
 
 OPT:
+- Track source locations in AST.
 - Parser tests.
 
 NOTES:

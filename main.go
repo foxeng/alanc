@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/foxeng/alanc/parser"
+	"github.com/foxeng/alanc/semantic"
 )
 
 func main() {
@@ -22,9 +23,14 @@ func main() {
 	defer fin.Close()
 
 	l := parser.NewLexer(bufio.NewReader(fin))
-	_, err = parser.Parse(&l)
+	ast, err := parser.Parse(&l)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "parse: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err = semantic.Check(ast); err != nil {
+		fmt.Fprintf(os.Stderr, "check: %v\n", err)
 		os.Exit(1)
 	}
 }
