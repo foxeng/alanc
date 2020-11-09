@@ -6,11 +6,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/foxeng/alanc/ast"
+	"github.com/foxeng/alanc/semantic"
 )
 
 // Parse is a wrapper around goyacc's yyParse. When yyParse accepts, this returns the AST produced.
-func Parse(l *Lexer) (*ast.Ast, error) {
+func Parse(l *Lexer) (*semantic.Ast, error) {
 	r := yyParse(l)
 	if lexErr != nil {
 		return nil, fmt.Errorf("lexer: %v", lexErr)
@@ -18,5 +18,5 @@ func Parse(l *Lexer) (*ast.Ast, error) {
 	if r != 0 {
 		return nil, errors.New("parser rejected")
 	}
-	return _ast, nil
+	return ast, nil
 }

@@ -1,5 +1,6 @@
-// Package ast defines the Abstract Syntax Tree for Alan.
-package ast
+// Package semantic contains the semantic analysis for Alan: AST definition, symbol table, type
+// checking.
+package semantic
 
 /*
 AST nodes:

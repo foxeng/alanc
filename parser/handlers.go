@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/foxeng/alanc/ast"
+	"github.com/foxeng/alanc/semantic"
 )
 
 var hexDigits = []byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
@@ -130,7 +130,7 @@ func handleKwdOrIdent(b0 byte, bs io.ByteScanner, lval *yySymType) (int, error) 
 	case "true":
 		return TRUE, nil
 	default:
-		lval.id = ast.ID(word)
+		lval.id = semantic.ID(word)
 		return IDENT, nil
 	}
 }
@@ -167,7 +167,7 @@ func handleIntConst(b0 byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 		}
 		return -1, err
 	}
-	lval.iconst = ast.IntConstExpr{
+	lval.iconst = semantic.IntConstExpr{
 		Val: i,
 	}
 	return INT_CONST, nil
@@ -244,7 +244,7 @@ func handleCharLit(_ byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 		return -1, fmt.Errorf("too many characters in character literal")
 	}
 
-	lval.cconst = ast.CharConstExpr{
+	lval.cconst = semantic.CharConstExpr{
 		Val: rune(c),
 	}
 	return CHAR_LIT, nil
@@ -264,7 +264,7 @@ func handleStrLit(_ byte, bs io.ByteScanner, lval *yySymType) (int, error) {
 		}
 		buf.WriteByte(c)
 	}
-	lval.strlit = ast.StrLitExpr{
+	lval.strlit = semantic.StrLitExpr{
 		Val: buf.String(),
 	}
 	return STR_LIT, nil

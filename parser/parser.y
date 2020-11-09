@@ -1,11 +1,11 @@
 %{
 package parser
 
-import "github.com/foxeng/alanc/ast"
+import "github.com/foxeng/alanc/semantic"
 
-// _ast is the AST constructed by the parser.
+// ast is the AST constructed by the parser.
 // TODO OPT: Avoid this global. How?
-var _ast *ast.Ast
+var ast *semantic.Ast
 %}
 
 %token BYTE
@@ -38,27 +38,27 @@ var _ast *ast.Ast
 %nonassoc SIGN
 
 %union {
-	id ast.ID
-	ast ast.Ast
-	fdef ast.FuncDef
-	pdefs []ast.ParDef
-	pdef ast.ParDef
-	dt ast.DataType
-	rtype *ast.DataType
-	ldefs []ast.LocalDef
-	ldef ast.LocalDef
-	vdef ast.VarDef
-	stmt ast.Stmt
-	cstmt ast.CompStmt
-	stmts []ast.Stmt
-	fcall ast.FuncCall
-	exprs []ast.Expr
-	expr ast.Expr
-	lval ast.LVal
-	cond ast.Cond
-	iconst ast.IntConstExpr
-	cconst ast.CharConstExpr
-	strlit ast.StrLitExpr
+	id semantic.ID
+	ast semantic.Ast
+	fdef semantic.FuncDef
+	pdefs []semantic.ParDef
+	pdef semantic.ParDef
+	dt semantic.DataType
+	rtype *semantic.DataType
+	ldefs []semantic.LocalDef
+	ldef semantic.LocalDef
+	vdef semantic.VarDef
+	stmt semantic.Stmt
+	cstmt semantic.CompStmt
+	stmts []semantic.Stmt
+	fcall semantic.FuncCall
+	exprs []semantic.Expr
+	expr semantic.Expr
+	lval semantic.LVal
+	cond semantic.Cond
+	iconst semantic.IntConstExpr
+	cconst semantic.CharConstExpr
+	strlit semantic.StrLitExpr
 }
 
 %type <yys> BYTE
@@ -102,7 +102,7 @@ var _ast *ast.Ast
 program:
 	func_def
 	{
-		_ast = &ast.Ast{
+		ast = &semantic.Ast{
 			Program: $1,
 		}
 	}
@@ -111,7 +111,7 @@ program:
 func_def:
 	IDENT '(' fpar_list ')' ':' r_type local_def_list compound_stmt
 	{
-		$$ = ast.FuncDef{
+		$$ = semantic.FuncDef{
 			ID: $1,
 			Parameters: $3,
 			RType: $6,
@@ -124,11 +124,11 @@ func_def:
 fpar_list:
 	/* empty */
 	{
-		$$ = []ast.ParDef{}
+		$$ = []semantic.ParDef{}
 	}
 |	fpar_def
 	{
-		$$ = []ast.ParDef{$1}
+		$$ = []semantic.ParDef{$1}
 	}
 |	fpar_list ',' fpar_def
 	{
@@ -139,8 +139,8 @@ fpar_list:
 fpar_def:
 	IDENT ':' data_type
 	{
-		$$ = ast.ParDef{
-			VarDef: &ast.PrimVarDef{
+		$$ = semantic.ParDef{
+			VarDef: &semantic.PrimVarDef{
 				ID: $1,
 				DataType: $3,
 			},
@@ -148,8 +148,8 @@ fpar_def:
 	}
 |	IDENT ':' REFERENCE data_type
 	{
-		$$ = ast.ParDef{
-			VarDef: &ast.PrimVarDef{
+		$$ = semantic.ParDef{
+			VarDef: &semantic.PrimVarDef{
 				ID: $1,
 				DataType: $4,
 			},
@@ -158,9 +158,9 @@ fpar_def:
 	}
 |	IDENT ':' REFERENCE data_type '[' ']'
 	{
-		$$ = ast.ParDef{
-			VarDef: &ast.ArrayDef{
-				PrimVarDef: ast.PrimVarDef{
+		$$ = semantic.ParDef{
+			VarDef: &semantic.ArrayDef{
+				PrimVarDef: semantic.PrimVarDef{
 					ID: $1,
 					DataType: $4,
 				},
@@ -174,11 +174,11 @@ fpar_def:
 data_type:
 	INT
 	{
-		$$ = ast.DataTypeInt
+		$$ = semantic.DataTypeInt
 	}
 |	BYTE
 	{
-		$$ = ast.DataTypeByte
+		$$ = semantic.DataTypeByte
 	}
 ;
 
@@ -196,7 +196,7 @@ r_type:
 local_def_list:
 	/* empty */
 	{
-		$$ = []ast.LocalDef{}
+		$$ = []semantic.LocalDef{}
 	}
 |	local_def_list local_def
 	{
@@ -218,15 +218,15 @@ local_def:
 var_def:
 	IDENT ':' data_type ';'
 	{
-		$$ = &ast.PrimVarDef{
+		$$ = &semantic.PrimVarDef{
 			ID: $1,
 			DataType: $3,
 		}
 	}
 |	IDENT ':' data_type '[' INT_CONST ']' ';'
 	{
-		$$ = &ast.ArrayDef{
-			PrimVarDef: ast.PrimVarDef{
+		$$ = &semantic.ArrayDef{
+			PrimVarDef: semantic.PrimVarDef{
 				ID: $1,
 				DataType: $3,
 			},
@@ -238,13 +238,13 @@ var_def:
 stmt:
 	';'
 	{
-		$$ = &ast.CompStmt{
-			Stmts: []ast.Stmt{},
+		$$ = &semantic.CompStmt{
+			Stmts: []semantic.Stmt{},
 		}
 	}
 |	l_value '=' expr ';'
 	{
-		$$ = &ast.AssignStmt{
+		$$ = &semantic.AssignStmt{
 			Left: $1,
 			Right: $3,
 		}
@@ -255,20 +255,20 @@ stmt:
 	}
 |	func_call ';'
 	{
-		$$ = &ast.FuncCallStmt{
+		$$ = &semantic.FuncCallStmt{
 			FuncCall: $1,
 		}
 	}
 |	IF '(' cond ')' stmt
 	{
-		$$ = &ast.IfStmt{
+		$$ = &semantic.IfStmt{
 			Cond: $3,
 			Stmt: $5,
 		}
 	}
 |	IF '(' cond ')' stmt ELSE stmt
 	{
-		$$ = &ast.IfElseStmt{
+		$$ = &semantic.IfElseStmt{
 			Cond: $3,
 			Stmt1: $5,
 			Stmt2: $7,
@@ -276,20 +276,20 @@ stmt:
 	}
 |	WHILE '(' cond ')' stmt
 	{
-		$$ = &ast.WhileStmt{
+		$$ = &semantic.WhileStmt{
 			Cond: $3,
 			Stmt: $5,
 		}
 	}
 |	RETURN ';'
 	{
-		$$ = &ast.ReturnStmt{
+		$$ = &semantic.ReturnStmt{
 			Expr: nil,
 		}
 	}
 |	RETURN expr ';'
 	{
-		$$ = &ast.ReturnStmt{
+		$$ = &semantic.ReturnStmt{
 			Expr: $2,
 		}
 	}
@@ -298,7 +298,7 @@ stmt:
 compound_stmt:
 	'{' stmt_list '}'
 	{
-		$$ = ast.CompStmt{
+		$$ = semantic.CompStmt{
 			Stmts: $2,
 		}
 	}
@@ -307,7 +307,7 @@ compound_stmt:
 stmt_list:
 	/* empty */
 	{
-		$$ = []ast.Stmt{}
+		$$ = []semantic.Stmt{}
 	}
 |	stmt_list stmt
 	{
@@ -318,14 +318,14 @@ stmt_list:
 func_call:
 	IDENT '(' ')'
 	{
-		$$ = ast.FuncCall{
+		$$ = semantic.FuncCall{
 			ID: $1,
-			Args: []ast.Expr{},
+			Args: []semantic.Expr{},
 		}
 	}
 |	IDENT '(' expr_list ')'
 	{
-		$$ = ast.FuncCall{
+		$$ = semantic.FuncCall{
 			ID: $1,
 			Args: $3,
 		}
@@ -335,7 +335,7 @@ func_call:
 expr_list:
 	expr
 	{
-		$$ = []ast.Expr{$1}
+		$$ = []semantic.Expr{$1}
 	}
 |	expr_list ',' expr
 	{
@@ -362,61 +362,61 @@ expr:
 	}
 |	func_call
 	{
-		$$ = &ast.FuncCallExpr{
+		$$ = &semantic.FuncCallExpr{
 			FuncCall: $1,
 		}
 	}
 |	'+' expr %prec SIGN
 	{
-		$$ = &ast.UnArithExpr{
-			Sign: ast.SignPlus,
+		$$ = &semantic.UnArithExpr{
+			Sign: semantic.SignPlus,
 			Expr: $2,
 		}
 	}
 |	'-' expr %prec SIGN
 	{
-		$$ = &ast.UnArithExpr{
-			Sign: ast.SignMinus,
+		$$ = &semantic.UnArithExpr{
+			Sign: semantic.SignMinus,
 			Expr: $2,
 		}
 	}
 |	expr '+' expr
 	{
-		$$ = &ast.BinArithExpr{
+		$$ = &semantic.BinArithExpr{
 			Left: $1,
-			Op: ast.ArithOpPlus,
+			Op: semantic.ArithOpPlus,
 			Right: $3,
 		}
 	}
 |	expr '-' expr
 	{
-		$$ = &ast.BinArithExpr{
+		$$ = &semantic.BinArithExpr{
 			Left: $1,
-			Op: ast.ArithOpMinus,
+			Op: semantic.ArithOpMinus,
 			Right: $3,
 		}
 	}
 |	expr '*' expr
 	{
-		$$ = &ast.BinArithExpr{
+		$$ = &semantic.BinArithExpr{
 			Left: $1,
-			Op: ast.ArithOpMult,
+			Op: semantic.ArithOpMult,
 			Right: $3,
 		}
 	}
 |	expr '/' expr
 	{
-		$$ = &ast.BinArithExpr{
+		$$ = &semantic.BinArithExpr{
 			Left: $1,
-			Op: ast.ArithOpDiv,
+			Op: semantic.ArithOpDiv,
 			Right: $3,
 		}
 	}
 |	expr '%' expr
 	{
-		$$ = &ast.BinArithExpr{
+		$$ = &semantic.BinArithExpr{
 			Left: $1,
-			Op: ast.ArithOpMod,
+			Op: semantic.ArithOpMod,
 			Right: $3,
 		}
 	}
@@ -425,13 +425,13 @@ expr:
 l_value:
 	IDENT
 	{
-		$$ = &ast.VarRef{
+		$$ = &semantic.VarRef{
 			ID: $1,
 		}
 	}
 |	IDENT '[' expr ']'
 	{
-		$$ = &ast.ArrayElem{
+		$$ = &semantic.ArrayElem{
 			ID: $1,
 			Index: $3,
 		}
@@ -445,13 +445,13 @@ l_value:
 cond:
 	TRUE
 	{
-		$$ = &ast.ConstCond{
+		$$ = &semantic.ConstCond{
 			Val: true,
 		}
 	}
 |	FALSE
 	{
-		$$ = &ast.ConstCond{
+		$$ = &semantic.ConstCond{
 			Val: false,
 		}
 	}
@@ -461,71 +461,71 @@ cond:
 	}
 |	'!' cond %prec SIGN
 	{
-		$$ = &ast.UnCond{
+		$$ = &semantic.UnCond{
 			Cond: $2,
 		}
 	}
 |	expr EQ expr
 	{
-		$$ = &ast.CompCond{
+		$$ = &semantic.CompCond{
 			Left: $1,
-			Op: ast.CompOpEQ,
+			Op: semantic.CompOpEQ,
 			Right: $3,
 		}
 	}
 |	expr NE expr
 	{
-		$$ = &ast.CompCond{
+		$$ = &semantic.CompCond{
 			Left: $1,
-			Op: ast.CompOpNE,
+			Op: semantic.CompOpNE,
 			Right: $3,
 		}
 	}
 |	expr '<' expr
 	{
-		$$ = &ast.CompCond{
+		$$ = &semantic.CompCond{
 			Left: $1,
-			Op: ast.CompOpLT,
+			Op: semantic.CompOpLT,
 			Right: $3,
 		}
 	}
 |	expr '>' expr
 	{
-		$$ = &ast.CompCond{
+		$$ = &semantic.CompCond{
 			Left: $1,
-			Op: ast.CompOpGT,
+			Op: semantic.CompOpGT,
 			Right: $3,
 		}
 	}
 |	expr LE expr
 	{
-		$$ = &ast.CompCond{
+		$$ = &semantic.CompCond{
 			Left: $1,
-			Op: ast.CompOpLE,
+			Op: semantic.CompOpLE,
 			Right: $3,
 		}
 	}
 |	expr GE expr
 	{
-		$$ = &ast.CompCond{
+		$$ = &semantic.CompCond{
 			Left: $1,
-			Op: ast.CompOpGE,
+			Op: semantic.CompOpGE,
 			Right: $3,
 		}
 	}
 |	cond '&' cond
 	{
-		$$ = &ast.BinCond{
+		$$ = &semantic.BinCond{
 			Left: $1,
-			Op: ast.LogOpAnd,
+			Op: semantic.LogOpAnd,
 			Right: $3,
 		}
 	}
 |	cond '|' cond
 	{
-		$$ = &ast.BinCond{
+		$$ = &semantic.BinCond{
 			Left: $1,
-			Op: ast.LogOpOr,
+			Op: semantic.LogOpOr,
 			Right: $3,
 		}
 	}
