@@ -113,6 +113,7 @@ type Node interface {
 type LocalDef interface {
 	Node
 	isLocalDef()
+	Id() ID
 }
 
 // FuncDef is a function definition.
@@ -129,9 +130,16 @@ type FuncDef struct {
 	CompStmt
 }
 
+// TODO OPT: Define the methods on value instead of pointer receivers?
+
 func (*FuncDef) isNode() {}
 
 func (*FuncDef) isLocalDef() {}
+
+// Id returns the function's identifier.
+func (fd *FuncDef) Id() ID {
+	return fd.ID
+}
 
 // ParDef is a function parameter's definition.
 type ParDef struct {
@@ -144,6 +152,11 @@ type ParDef struct {
 func (*ParDef) isNode() {}
 
 func (*ParDef) isLocalDef() {}
+
+// Id returns the parameter's identifier.
+func (pd *ParDef) Id() ID {
+	return pd.VarDef.Id()
+}
 
 // VarDef is the discriminated union of PrimVarDef and ArrayDef.
 type VarDef interface {
@@ -163,6 +176,11 @@ func (*PrimVarDef) isNode() {}
 
 func (*PrimVarDef) isLocalDef() {}
 
+// Id returns the primitive variable's identifier.
+func (pvd *PrimVarDef) Id() ID {
+	return pvd.ID
+}
+
 func (*PrimVarDef) isVarDef() {}
 
 // ArrayDef is an array definition.
@@ -176,6 +194,11 @@ type ArrayDef struct {
 func (*ArrayDef) isNode() {}
 
 func (*ArrayDef) isLocalDef() {}
+
+// Id returns the array's identifier.
+func (ad *ArrayDef) Id() ID {
+	return ad.ID
+}
 
 func (*ArrayDef) isVarDef() {}
 
