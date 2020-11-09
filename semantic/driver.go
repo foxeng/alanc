@@ -8,8 +8,9 @@ func Check(ast *Ast) error {
 	return symCheck(st, ast.Program)
 }
 
-// symCheck performs the elementary symbol checks on the subtree rooted in node.
+// symCheck performs the elementary symbol checks on the substree rooted in node.
 func symCheck(st *SymTab, node Node) error {
+	fmt.Printf("%T\n", node)
 	switch n := node.(type) {
 	case *FuncDef:
 		// Add ID to scope.

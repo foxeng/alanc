@@ -1,20 +1,27 @@
 TODO:
-- Walk AST.
-- Symbol table.
-- Type checks.
+- Checks:
+  - Types:
+    - Type of main function? (name doesn't matter) Can it accept params? Can it have non-proc
+      return?
+  - OPT: Bounds.
+- Test:
+  - Go over spec again, check for all the details:
+    - Identifiers should not match any keyword (taken care of by lexer)?
+    - Return should match type of function.
 
 - Is indexing a string literal (e.g. '"abc"[1]') allowed? The grammar[2] does not include it, but
 the section on l-values[1.4.1] implies it. In case it is allowed, what are the semantics of
 assigning to such an l-value (e.g. '"abc"[1] = "a"')?
 
+
 OPT:
 - Track source locations in AST.
 - Parser tests.
+
 
 NOTES:
 - We use package unicode in the lexer. This doesn't mean that we accept unicode since the input is
 processed byte for byte (and the functions in 'unicode' when operating on single bytes practically
 accept ASCII).
-
 - The lexer and the parser must live in the same package because, if they lived in separate ones,
 they would have to import each other, thus forming an import cycle (and these are forbidden in Go).
