@@ -34,13 +34,6 @@ binary condition: op (&, |), condition, condition
 */
 
 const (
-	// DataTypeInt is the "int" data type.
-	DataTypeInt DataType = iota
-	// DataTypeByte is the "byte" data type.
-	DataTypeByte
-)
-
-const (
 	// SignPlus is the '+' sign.
 	SignPlus Sign = '+'
 	// SignMinus is the '-' sign.
@@ -85,9 +78,6 @@ const (
 // ID is an identifier.
 type ID string
 
-// DataType is a (primitive) data type (i.e. "int" or "byte").
-type DataType int
-
 // Sign is an arithmetic sign (i.e. '+' or '-').
 type Sign rune
 
@@ -111,11 +101,10 @@ type Node interface {
 	check(*SymTab) (Type, error)
 }
 
-// LocalDef is a local definition (discriminated union of FuncDef and VarDef).
+// LocalDef is a local definition.
 type LocalDef interface {
 	Node
 	isLocalDef()
-	Id() ID
 }
 
 // FuncDef is a function definition.
@@ -125,7 +114,7 @@ type FuncDef struct {
 	// Parameters are the function's parameters.
 	Parameters []ParDef
 	// RType is the function's return type (nil if function is a proc).
-	RType *DataType
+	RType *PrimitiveType
 	// LDefs are the function's local definitions.
 	LDefs []LocalDef
 	// CompStmt is the function's body.
@@ -138,71 +127,41 @@ func (*FuncDef) isNode() {}
 
 func (*FuncDef) isLocalDef() {}
 
-// Id returns the function's identifier.
-func (fd *FuncDef) Id() ID {
-	return fd.ID
-}
-
 // ParDef is a function parameter's definition.
 type ParDef struct {
-	// VarDef is the underlying variable definition (if an array, size is ignored).
-	VarDef
-	// IsRef denotes whether the parameter is passed by reference.
-	IsRef bool // TODO OPT: Avoid this by making separate ValParDef and RefParDef?
+	// ID is the parameter's identifier.
+	ID
+	// Type is the parameter's type.
+	Type ParameterType
 }
 
 func (*ParDef) isNode() {}
 
 func (*ParDef) isLocalDef() {}
 
-// Id returns the parameter's identifier.
-func (pd *ParDef) Id() ID {
-	return pd.VarDef.Id()
-}
-
-// VarDef is the discriminated union of PrimVarDef and ArrayDef.
-type VarDef interface {
-	LocalDef
-	isVarDef()
-}
-
 // PrimVarDef is a primitive variable definition.
 type PrimVarDef struct {
 	// ID is the variable's identifier.
 	ID
-	// DataType is the variable's (primitive) data type.
-	DataType
+	// Type is the variable's (primitive) type.
+	Type PrimitiveType
 }
 
 func (*PrimVarDef) isNode() {}
 
 func (*PrimVarDef) isLocalDef() {}
 
-// Id returns the primitive variable's identifier.
-func (pvd *PrimVarDef) Id() ID {
-	return pvd.ID
-}
-
-func (*PrimVarDef) isVarDef() {}
-
 // ArrayDef is an array definition.
 type ArrayDef struct {
-	// PrimVarDef is the underlying variable definition.
-	PrimVarDef
-	// Size is the size of the array
-	Size IntConstExpr
+	// ID is the array's identifier.
+	ID
+	// Type is the array's type.
+	Type ArrayType
 }
 
 func (*ArrayDef) isNode() {}
 
 func (*ArrayDef) isLocalDef() {}
-
-// Id returns the array's identifier.
-func (ad *ArrayDef) Id() ID {
-	return ad.ID
-}
-
-func (*ArrayDef) isVarDef() {}
 
 // Stmt is a statement.
 type Stmt interface {

@@ -3,8 +3,9 @@ package parser
 
 import "github.com/foxeng/alanc/semantic"
 
-// ast is the AST constructed by the parser.
 // TODO OPT: Avoid this global. How?
+
+// ast is the AST constructed by the parser.
 var ast *semantic.Ast
 %}
 
@@ -38,24 +39,23 @@ var ast *semantic.Ast
 %nonassoc SIGN
 
 %union {
-	id semantic.ID
-	ast semantic.Ast
-	fdef *semantic.FuncDef
-	pdefs []semantic.ParDef
-	pdef semantic.ParDef
-	dt semantic.DataType
-	rtype *semantic.DataType
-	ldefs []semantic.LocalDef
-	ldef semantic.LocalDef
-	vdef semantic.VarDef
-	stmt semantic.Stmt
-	cstmt semantic.CompStmt
-	stmts []semantic.Stmt
-	fcall semantic.FuncCall
-	exprs []semantic.Expr
-	expr semantic.Expr
-	lval semantic.LVal
-	cond semantic.Cond
+	id     semantic.ID
+	ast    semantic.Ast
+	fdef   *semantic.FuncDef
+	pdefs  []semantic.ParDef
+	pdef   semantic.ParDef
+	dt     semantic.PrimitiveType
+	rtype  *semantic.PrimitiveType
+	ldefs  []semantic.LocalDef
+	ldef   semantic.LocalDef
+	stmt   semantic.Stmt
+	cstmt  semantic.CompStmt
+	stmts  []semantic.Stmt
+	fcall  semantic.FuncCall
+	exprs  []semantic.Expr
+	expr   semantic.Expr
+	lval   semantic.LVal
+	cond   semantic.Cond
 	iconst semantic.IntConstExpr
 	cconst semantic.CharConstExpr
 	strlit semantic.StrLitExpr
@@ -85,7 +85,6 @@ var ast *semantic.Ast
 %type <pdef> fpar_def
 %type <dt> data_type
 %type <ldef> local_def
-%type <vdef> var_def
 %type <stmt> stmt
 %type <lval> l_value
 %type <expr> expr
@@ -140,33 +139,32 @@ fpar_def:
 	IDENT ':' data_type
 	{
 		$$ = semantic.ParDef{
-			VarDef: &semantic.PrimVarDef{
-				ID: $1,
-				DataType: $3,
+			ID: $1,
+			Type: semantic.ParameterType{
+				DType: $3,
 			},
 		}
 	}
 |	IDENT ':' REFERENCE data_type
 	{
 		$$ = semantic.ParDef{
-			VarDef: &semantic.PrimVarDef{
-				ID: $1,
-				DataType: $4,
+			ID: $1,
+			Type: semantic.ParameterType{
+				DType: $4,
+				IsRef: true,
 			},
-			IsRef: true,
 		}
 	}
 |	IDENT ':' REFERENCE data_type '[' ']'
 	{
 		$$ = semantic.ParDef{
-			VarDef: &semantic.ArrayDef{
-				PrimVarDef: semantic.PrimVarDef{
-					ID: $1,
-					DataType: $4,
+			ID: $1,
+			Type: semantic.ParameterType{
+				DType: semantic.ArrayType{
+					PrimitiveType: $4,
 				},
-				// TODO OPT: Set size to some special value indicating unknown?
+				IsRef: true,
 			},
-			IsRef: true,
 		}
 	}
 ;
@@ -174,11 +172,11 @@ fpar_def:
 data_type:
 	INT
 	{
-		$$ = semantic.DataTypeInt
+		$$ = semantic.PrimitiveTypeInt
 	}
 |	BYTE
 	{
-		$$ = semantic.DataTypeByte
+		$$ = semantic.PrimitiveTypeByte
 	}
 ;
 
@@ -211,28 +209,21 @@ local_def:
 	{
 		$$ = $1
 	}
-|	var_def
-	{
-		$$ = $1
-	}
-;
-
-var_def:
-	IDENT ':' data_type ';'
+|	IDENT ':' data_type ';'
 	{
 		$$ = &semantic.PrimVarDef{
 			ID: $1,
-			DataType: $3,
+			Type: $3,
 		}
 	}
 |	IDENT ':' data_type '[' INT_CONST ']' ';'
 	{
 		$$ = &semantic.ArrayDef{
-			PrimVarDef: semantic.PrimVarDef{
-				ID: $1,
-				DataType: $3,
+			ID: $1,
+			Type: semantic.ArrayType{
+				PrimitiveType: $3,
+				Size: $5.Val,
 			},
-			Size: $5,
 		}
 	}
 ;
