@@ -2,17 +2,17 @@ TODO:
 - Checks:
   - OPT: For functions (i.e. not proc), check that they contain a return.
   - OPT: Bounds.
-- Test:
-  - Go over spec again, check for all the details.
+- Intermediate code.
+- LLVM.
 
-- Is indexing a string literal (e.g. '"abc"[1]') allowed? The grammar[2] does not include it, but
-the section on l-values[1.4.1] implies it. In case it is allowed, what are the semantics of
-assigning to such an l-value (e.g. '"abc"[1] = "a"')?
+- Test:
+  - Parser tests.
+  - Semantic tests: go by the spec, create test suite.
 
 
 OPT:
 - Track source locations in AST.
-- Parser tests.
+- Better error messages: more uniform, more informative.
 
 
 NOTES:

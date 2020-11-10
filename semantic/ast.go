@@ -2,37 +2,6 @@
 // checking.
 package semantic
 
-/*
-AST nodes:
-function definition: id, [parameter list], return type, [local definitions list], statement
-variable definition: id, type
-array definition: id, type, size
-
-empty
-seq: statement, statement
-assignment: l-value, expression
-function call: id, expression list
-if: condition, statement
-if else: condition, statement, statement
-while: condition, statement
-return: [expression]
-
-int constant: int
-char constant: char
-function call: id, expression list
-string literal: string
-unary arithmetic: op (+, -), expression
-binary arithmetic: op (+, -, *, /, %), expression, expression
-
-variable reference: id
-array element: id, expression
-
-bool constant: bool
-comparison: op (==, !=, <, >, <=, >=), expression, expression
-unary condition: condition
-binary condition: op (&, |), condition, condition
-*/
-
 const (
 	// SignPlus is the '+' sign.
 	SignPlus Sign = '+'
@@ -223,7 +192,7 @@ func (*IfStmt) isNode() {}
 
 func (*IfStmt) isStmt() {}
 
-// TODO: Merge with IfStmt?
+// TODO OPT: Merge with IfStmt?
 
 // IfElseStmt is an if-else statement.
 type IfElseStmt struct {
@@ -303,7 +272,7 @@ func (*VarRef) isExpr() {}
 
 func (*VarRef) isLVal() {}
 
-// TODO: Merge with VarRef?
+// TODO OPT: Merge with VarRef?
 
 // ArrayElem is an array element.
 type ArrayElem struct {
