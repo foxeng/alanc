@@ -7,7 +7,7 @@ func TestNewSymTab(t *testing.T) {
 	if st == nil {
 		t.Error("NewSymTab() = nil")
 	}
-	st.Enter()
+	st.Enter("")
 	// All standard library functions should be predefined.
 	for _, f := range stdlib {
 		if st.Lookup(f.ID) == nil {
@@ -19,20 +19,31 @@ func TestNewSymTab(t *testing.T) {
 
 func TestSymTabEnter(t *testing.T) {
 	st := NewSymTab()
-	st.Enter()
+	st.Enter("")
 
 	// Enter() should increment the stack depth.
 	ol := len(st.scopes.stack)
-	st.Enter()
+	st.Enter("")
 	nl := len(st.scopes.stack)
 	if nl != ol+1 {
 		t.Errorf("Enter() changed scope stack length by %d, want 1", nl-ol)
 	}
 }
 
+func TestSymTabCurrentID(t *testing.T) {
+	st := NewSymTab()
+	testID := ID("testID")
+	st.Enter(testID)
+
+	cid := st.CurrentID()
+	if cid != testID {
+		t.Errorf("CurrentID() returned %q, want %q", cid, testID)
+	}
+}
+
 func TestSymTab(t *testing.T) {
 	st := NewSymTab()
-	st.Enter()
+	st.Enter("")
 
 	defs := []struct {
 		ID
@@ -96,7 +107,7 @@ func TestSymTab(t *testing.T) {
 	}
 
 	// Add() and Lookup() should work when in a nested scope.
-	st.Enter()
+	st.Enter("")
 	r = st.Lookup(defs[0].ID)
 	if r == nil {
 		t.Errorf("%q not found in inner scope", defs[0].ID)
@@ -117,7 +128,7 @@ func TestSymTab(t *testing.T) {
 	if !st.Add(def2.ID, def2.FunctionType) {
 		t.Errorf("failed to add %q", def2.ID)
 	}
-	st.Enter()
+	st.Enter("")
 	r = st.Lookup(def2.ID)
 	if r == nil {
 		t.Errorf("%q not found in scope after its addition", def2.ID)
@@ -150,7 +161,7 @@ func TestSymTab(t *testing.T) {
 
 func TestSymTabExit(t *testing.T) {
 	st := NewSymTab()
-	st.Enter()
+	st.Enter("")
 
 	def := struct {
 		ID
@@ -161,7 +172,7 @@ func TestSymTabExit(t *testing.T) {
 			Parameters: []ParameterType{},
 		},
 	}
-	st.Enter()
+	st.Enter("")
 	st.Add(def.ID, def.FunctionType)
 
 	// Exit() should decrement the stack depth.

@@ -6,14 +6,24 @@ package semantic
 // scope is a single Alan scope (the scope of a unit, not a single symbol).
 type scope map[ID]Type
 
-// scopeStack is a stack of scopes.
-type scopeStack struct {
-	stack []scope
+// idScope is an identified scope (a scope and a name).
+type idScope struct {
+	ID
+	scope
 }
 
-// push pushes a new empty scope to the top of the stack.
-func (st *scopeStack) push() {
-	st.stack = append(st.stack, scope{})
+// scopeStack is a stack of scopes.
+type scopeStack struct {
+	stack []idScope
+}
+
+// push pushes a new empty scope identified by name to the top of the stack.
+func (st *scopeStack) push(name ID) {
+	ids := idScope{
+		ID:    name,
+		scope: scope{},
+	}
+	st.stack = append(st.stack, ids)
 }
 
 // pop pops the scope at the top of the stack.
@@ -27,8 +37,9 @@ func (st *scopeStack) pop() {
 }
 
 // top returns the current top of the stack.
-func (st *scopeStack) top() *scope {
-	return &st.stack[len(st.stack)-1]
+func (st *scopeStack) top() (ID, *scope) {
+	ids := &st.stack[len(st.stack)-1]
+	return ids.ID, &ids.scope
 }
 
 // SymTab is the Symbol Table for Alan.
@@ -45,7 +56,7 @@ type SymTab struct {
 // Enter() should be called on it before any further use, to enter the main program scope.
 func NewSymTab() *SymTab {
 	st := &SymTab{}
-	st.Enter()
+	st.Enter("")
 	// Inject standard library definitions in the outermost scope (nothing else should be defined
 	// in that, so as for them to be immediately shadowable, from the outermost program scope).
 	for _, fd := range stdlib {
@@ -54,15 +65,22 @@ func NewSymTab() *SymTab {
 	return st
 }
 
-// Enter creates a new scope and switches to it.
-func (st *SymTab) Enter() {
-	st.scopes.push()
+// Enter creates a new scope identified by name (typically the enclosing function's name) and
+// switches to it.
+func (st *SymTab) Enter(name ID) {
+	st.scopes.push(name)
+}
+
+// CurrentID returns the identifier of the current scope (typically the enclosing function's name).
+func (st *SymTab) CurrentID() ID {
+	name, _ := st.scopes.top()
+	return name
 }
 
 // Add adds a new symbol definition for name to the current scope, returning false if there is a
 // definition for that name in the current scope already (not shadowable).
 func (st *SymTab) Add(name ID, t Type) bool {
-	sc := st.scopes.top()
+	_, sc := st.scopes.top()
 	if _, ok := (*sc)[name]; ok {
 		return false
 	}
@@ -75,7 +93,7 @@ func (st *SymTab) Add(name ID, t Type) bool {
 // it returns nil.
 func (st *SymTab) Lookup(name ID) Type {
 	for i := len(st.scopes.stack) - 1; i >= 0; i-- {
-		if t, ok := st.scopes.stack[i][name]; ok {
+		if t, ok := st.scopes.stack[i].scope[name]; ok {
 			return t
 		}
 	}
