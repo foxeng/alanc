@@ -1,198 +1,187 @@
 package semantic
 
-// rInt is an instance of the integer data type, necessary where a *DataType is required.
-var rInt = DataTypeInt
+// rInt is an instance of the int primitive type, necessary where a *PrimitiveType is required.
+var rInt = PrimitiveTypeInt
 
-// rByte is an instance of the byte data type, necessary where a *DataType is required.
-var rByte = DataTypeByte
+// rByte is an instance of the byte primitive type, necessary where a *PrimitiveType is required.
+var rByte = PrimitiveTypeByte
 
 // stdlib is the collection of standard library functions in Alan.
-var stdlib = []FuncDef{
+var stdlib = []struct {
+	ID
+	FunctionType
+}{
 	{
 		ID: "writeInteger",
-		Parameters: []ParDef{
-			{
-				VarDef: &PrimVarDef{
-					ID:       "n",
-					DataType: DataTypeInt,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: PrimitiveTypeInt,
 				},
 			},
 		},
 	},
 	{
 		ID: "writeByte",
-		Parameters: []ParDef{
-			{
-				VarDef: &PrimVarDef{
-					ID:       "b",
-					DataType: DataTypeByte,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: PrimitiveTypeByte,
 				},
 			},
 		},
 	},
 	{
 		ID: "writeChar",
-		Parameters: []ParDef{
-			{
-				VarDef: &PrimVarDef{
-					ID:       "b",
-					DataType: DataTypeByte,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: PrimitiveTypeByte,
 				},
 			},
 		},
 	},
 	{
 		ID: "writeString",
-		Parameters: []ParDef{
-			{
-				VarDef: &ArrayDef{
-					PrimVarDef: PrimVarDef{
-						ID:       "s",
-						DataType: DataTypeByte,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: ArrayType{
+						PrimitiveType: PrimitiveTypeByte,
 					},
+					IsRef: true,
 				},
-				IsRef: true,
 			},
 		},
 	},
 	{
-		ID:    "readInteger",
-		RType: &rInt,
+		ID: "readInteger",
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{},
+			Return:     &rInt,
+		},
 	},
 	{
-		ID:    "readByte",
-		RType: &rByte,
+		ID: "readByte",
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{},
+			Return:     &rByte,
+		},
 	},
 	{
-		ID:    "readChar",
-		RType: &rByte,
+		ID: "readChar",
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{},
+			Return:     &rByte,
+		},
 	},
 	{
 		ID: "readString",
-		Parameters: []ParDef{
-			{
-				VarDef: &PrimVarDef{
-					ID:       "n",
-					DataType: DataTypeInt,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: PrimitiveTypeInt,
 				},
-			},
-			{
-				VarDef: &ArrayDef{
-					PrimVarDef: PrimVarDef{
-						ID:       "s",
-						DataType: DataTypeByte,
+				{
+					DType: ArrayType{
+						PrimitiveType: PrimitiveTypeByte,
 					},
+					IsRef: true,
 				},
-				IsRef: true,
 			},
 		},
 	},
 	{
 		ID: "extend",
-		Parameters: []ParDef{
-			{
-				VarDef: &PrimVarDef{
-					ID:       "b",
-					DataType: DataTypeByte,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: PrimitiveTypeByte,
 				},
 			},
+			Return: &rInt,
 		},
-		RType: &rInt,
 	},
 	{
 		ID: "shrink",
-		Parameters: []ParDef{
-			{
-				VarDef: &PrimVarDef{
-					ID:       "i",
-					DataType: DataTypeInt,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: PrimitiveTypeInt,
 				},
 			},
+			Return: &rByte,
 		},
-		RType: &rByte,
 	},
 	{
 		ID: "strlen",
-		Parameters: []ParDef{
-			{
-				VarDef: &ArrayDef{
-					PrimVarDef: PrimVarDef{
-						ID:       "s",
-						DataType: DataTypeByte,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: ArrayType{
+						PrimitiveType: PrimitiveTypeByte,
 					},
+					IsRef: true,
 				},
-				IsRef: true,
 			},
+			Return: &rInt,
 		},
-		RType: &rInt,
 	},
 	{
 		ID: "strcmp",
-		Parameters: []ParDef{
-			{
-				VarDef: &ArrayDef{
-					PrimVarDef: PrimVarDef{
-						ID:       "s1",
-						DataType: DataTypeByte,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: ArrayType{
+						PrimitiveType: PrimitiveTypeByte,
 					},
+					IsRef: true,
 				},
-				IsRef: true,
-			},
-			{
-				VarDef: &ArrayDef{
-					PrimVarDef: PrimVarDef{
-						ID:       "s2",
-						DataType: DataTypeByte,
+				{
+					DType: ArrayType{
+						PrimitiveType: PrimitiveTypeByte,
 					},
+					IsRef: true,
 				},
-				IsRef: true,
 			},
+			Return: &rInt,
 		},
-		RType: &rInt,
 	},
 	{
 		ID: "strcpy",
-		Parameters: []ParDef{
-			{
-				VarDef: &ArrayDef{
-					PrimVarDef: PrimVarDef{
-						ID:       "trg",
-						DataType: DataTypeByte,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: ArrayType{
+						PrimitiveType: PrimitiveTypeByte,
 					},
+					IsRef: true,
 				},
-				IsRef: true,
-			},
-			{
-				VarDef: &ArrayDef{
-					PrimVarDef: PrimVarDef{
-						ID:       "src",
-						DataType: DataTypeByte,
+				{
+					DType: ArrayType{
+						PrimitiveType: PrimitiveTypeByte,
 					},
+					IsRef: true,
 				},
-				IsRef: true,
 			},
 		},
 	},
 	{
 		ID: "strcat",
-		Parameters: []ParDef{
-			{
-				VarDef: &ArrayDef{
-					PrimVarDef: PrimVarDef{
-						ID:       "trg",
-						DataType: DataTypeByte,
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{
+				{
+					DType: ArrayType{
+						PrimitiveType: PrimitiveTypeByte,
 					},
+					IsRef: true,
 				},
-				IsRef: true,
-			},
-			{
-				VarDef: &ArrayDef{
-					PrimVarDef: PrimVarDef{
-						ID:       "src",
-						DataType: DataTypeByte,
+				{
+					DType: ArrayType{
+						PrimitiveType: PrimitiveTypeByte,
 					},
+					IsRef: true,
 				},
-				IsRef: true,
 			},
 		},
 	},

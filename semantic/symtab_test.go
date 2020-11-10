@@ -10,8 +10,8 @@ func TestNewSymTab(t *testing.T) {
 	st.Enter()
 	// All standard library functions should be predefined.
 	for _, f := range stdlib {
-		if st.Lookup(f.Id()) == nil {
-			t.Errorf("%q not found in fresh main scope", f.Id())
+		if st.Lookup(f.ID) == nil {
+			t.Errorf("%q not found in fresh main scope", f.ID)
 		}
 	}
 	// TODO OPT: Test that nothing but the stdlib definitions is predefined.
@@ -34,99 +34,117 @@ func TestSymTab(t *testing.T) {
 	st := NewSymTab()
 	st.Enter()
 
-	defs := []LocalDef{
-		&FuncDef{
+	defs := []struct {
+		ID
+		Type
+	}{
+		{
 			ID: "testFunc",
-		},
-		&ParDef{
-			VarDef: &PrimVarDef{
-				ID:       "testPar",
-				DataType: DataTypeInt,
+			Type: FunctionType{
+				Parameters: []ParameterType{},
 			},
 		},
-		&PrimVarDef{
-			ID:       "testPrimVar",
-			DataType: DataTypeByte,
+		{
+			ID: "testPar",
+			Type: ParameterType{
+				DType: PrimitiveTypeInt,
+			},
 		},
-		&ArrayDef{
-			PrimVarDef: PrimVarDef{
-				ID:       "testArray",
-				DataType: DataTypeInt,
+		{
+			ID:   "testPrimVar",
+			Type: PrimitiveTypeByte,
+		},
+		{
+			ID: "testArray",
+			Type: ArrayType{
+				PrimitiveType: PrimitiveTypeInt,
 			},
 		},
 	}
 	for _, d := range defs {
-		r := st.Lookup(d.Id())
+		r := st.Lookup(d.ID)
 		if r != nil {
-			t.Errorf("%q found in scope before its addition", d.Id())
+			t.Errorf("%q found in scope before its addition", d.ID)
 		}
-		if !st.Add(d) {
-			t.Errorf("failed to add %q", d.Id())
+		if !st.Add(d.ID, d.Type) {
+			t.Errorf("failed to add %q", d.ID)
 		}
-		r = st.Lookup(d.Id())
+		r = st.Lookup(d.ID)
 		if r == nil {
-			t.Errorf("%q not found in scope after its addition", d.Id())
+			t.Errorf("%q not found in scope after its addition", d.ID)
 		}
 	}
 
 	// Standard library symbols should be shadowable.
-	stdShadowDef := &PrimVarDef{
-		ID:       "extend",
-		DataType: DataTypeInt,
+	stdShadowDef := struct {
+		ID
+		PrimitiveType
+	}{
+		ID:            "extend",
+		PrimitiveType: PrimitiveTypeInt,
 	}
-	r := st.Lookup(stdShadowDef.Id())
-	if _, ok := r.(*FuncDef); !ok {
-		t.Errorf("predefined %q not a FuncDef", stdShadowDef.Id())
+	r := st.Lookup(stdShadowDef.ID)
+	if _, ok := r.(FunctionType); !ok {
+		t.Errorf("predefined %q not a FunctionType", stdShadowDef.ID)
 	}
-	if !st.Add(stdShadowDef) {
-		t.Errorf("failed to add %q", stdShadowDef.Id())
+	if !st.Add(stdShadowDef.ID, stdShadowDef.PrimitiveType) {
+		t.Errorf("failed to add %q", stdShadowDef.ID)
 	}
-	r = st.Lookup(stdShadowDef.Id())
-	if _, ok := r.(*PrimVarDef); !ok {
-		t.Errorf("shadowed %q not a PrimVarDef", stdShadowDef.Id())
+	r = st.Lookup(stdShadowDef.ID)
+	if _, ok := r.(PrimitiveType); !ok {
+		t.Errorf("shadowed %q not a PrimitiveType", stdShadowDef.ID)
 	}
 
 	// Add() and Lookup() should work when in a nested scope.
 	st.Enter()
-	r = st.Lookup(defs[0].Id())
+	r = st.Lookup(defs[0].ID)
 	if r == nil {
-		t.Errorf("%q not found in inner scope", defs[0].Id())
+		t.Errorf("%q not found in inner scope", defs[0].ID)
 	}
-	def2 := &FuncDef{
+	def2 := struct {
+		ID
+		FunctionType
+	}{
 		ID: "testFunc2",
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{},
+		},
 	}
-	r = st.Lookup(def2.Id())
+	r = st.Lookup(def2.ID)
 	if r != nil {
-		t.Errorf("%q found in scope before its addition", def2.Id())
+		t.Errorf("%q found in scope before its addition", def2.ID)
 	}
-	if !st.Add(def2) {
-		t.Errorf("failed to add %q", def2.Id())
+	if !st.Add(def2.ID, def2.FunctionType) {
+		t.Errorf("failed to add %q", def2.ID)
 	}
 	st.Enter()
-	r = st.Lookup(def2.Id())
+	r = st.Lookup(def2.ID)
 	if r == nil {
-		t.Errorf("%q not found in scope after its addition", def2.Id())
+		t.Errorf("%q not found in scope after its addition", def2.ID)
 	}
 
 	// Symbols from outer scopes should be shadowable.
-	shadowDef := &PrimVarDef{
-		ID:       "testPrimVar",
-		DataType: DataTypeInt,
+	shadowDef := struct {
+		ID
+		PrimitiveType
+	}{
+		ID:            "testPrimVar",
+		PrimitiveType: PrimitiveTypeInt,
 	}
-	r = st.Lookup(shadowDef.Id())
-	odt := r.(*PrimVarDef).DataType
-	if !st.Add(shadowDef) {
-		t.Errorf("failed to add %q", shadowDef.Id())
+	r = st.Lookup(shadowDef.ID)
+	odt := r.(PrimitiveType)
+	if !st.Add(shadowDef.ID, shadowDef.PrimitiveType) {
+		t.Errorf("failed to add %q", shadowDef.ID)
 	}
-	r = st.Lookup(shadowDef.Id())
-	ndt := r.(*PrimVarDef).DataType
+	r = st.Lookup(shadowDef.ID)
+	ndt := r.(PrimitiveType)
 	if ndt == odt {
-		t.Errorf("%q not shadowed", shadowDef.Id())
+		t.Errorf("%q not shadowed", shadowDef.ID)
 	}
 
 	// Symbols from current scope should not be shadowable (no redefinitions).
-	if st.Add(shadowDef) {
-		t.Errorf("%q redefined in the same scope", shadowDef.Id())
+	if st.Add(shadowDef.ID, shadowDef.PrimitiveType) {
+		t.Errorf("%q redefined in the same scope", shadowDef.ID)
 	}
 }
 
@@ -134,11 +152,17 @@ func TestSymTabExit(t *testing.T) {
 	st := NewSymTab()
 	st.Enter()
 
-	def := &FuncDef{
+	def := struct {
+		ID
+		FunctionType
+	}{
 		ID: "testFunc",
+		FunctionType: FunctionType{
+			Parameters: []ParameterType{},
+		},
 	}
 	st.Enter()
-	st.Add(def)
+	st.Add(def.ID, def.FunctionType)
 
 	// Exit() should decrement the stack depth.
 	ol := len(st.scopes.stack)
@@ -150,7 +174,7 @@ func TestSymTabExit(t *testing.T) {
 	// TODO OPT: Test corner case (empty stack).
 
 	// Exit() should remove all symbols defined in the current scope.
-	r := st.Lookup(def.Id())
+	r := st.Lookup(def.ID)
 	if r != nil {
 		t.Errorf("%q found in scope after its removal", def.ID)
 	}

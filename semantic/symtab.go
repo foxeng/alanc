@@ -4,7 +4,7 @@ package semantic
 // unit. Except if it's shadowed.
 
 // scope is a single Alan scope (the scope of a unit, not a single symbol).
-type scope map[ID]LocalDef
+type scope map[ID]Type
 
 // scopeStack is a stack of scopes.
 type scopeStack struct {
@@ -49,7 +49,7 @@ func NewSymTab() *SymTab {
 	// Inject standard library definitions in the outermost scope (nothing else should be defined
 	// in that, so as for them to be immediately shadowable, from the outermost program scope).
 	for _, fd := range stdlib {
-		st.Add(&fd)
+		st.Add(fd.ID, fd.FunctionType)
 	}
 	return st
 }
@@ -61,22 +61,22 @@ func (st *SymTab) Enter() {
 
 // Add adds a new symbol definition for name to the current scope, returning false if there is a
 // definition for that name in the current scope already (not shadowable).
-func (st *SymTab) Add(ld LocalDef) bool {
+func (st *SymTab) Add(name ID, t Type) bool {
 	sc := st.scopes.top()
-	if _, ok := (*sc)[ld.Id()]; ok {
+	if _, ok := (*sc)[name]; ok {
 		return false
 	}
 
-	(*sc)[ld.Id()] = ld
+	(*sc)[name] = t
 	return true
 }
 
-// Lookup searches if name is visible from the current scope. If so, it returns the corresponding
-// definition, otherwise it returns nil.
-func (st *SymTab) Lookup(name ID) LocalDef {
+// Lookup searches if name is visible from the current scope. If so, it returns its type, otherwise
+// it returns nil.
+func (st *SymTab) Lookup(name ID) Type {
 	for i := len(st.scopes.stack) - 1; i >= 0; i-- {
-		if ld, ok := st.scopes.stack[i][name]; ok {
-			return ld
+		if t, ok := st.scopes.stack[i][name]; ok {
+			return t
 		}
 	}
 	return nil
