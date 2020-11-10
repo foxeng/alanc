@@ -108,6 +108,7 @@ type Ast struct {
 // Node is a single Node of an AST.
 type Node interface {
 	isNode()
+	check(*SymTab) (Type, error)
 }
 
 // LocalDef is a local definition (discriminated union of FuncDef and VarDef).
